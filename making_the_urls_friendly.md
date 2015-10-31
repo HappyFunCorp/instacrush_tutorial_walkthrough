@@ -59,6 +59,11 @@ Finally, we need to tweak the `crush_controller.rb` to do the query based on the
 class InstagramUser < ActiveRecord::Base
   extend FriendlyId
   friendly_id :username, use: :slugged
+  
+  def slug
+    username
+  end
+
 ```
 
 `routes.rb`:
