@@ -7,5 +7,5 @@
 * [Bootstrap: Mocking the UI](bootstrap_mocking_the_ui.md)
    * [Bootstrap Styling](bootstrap_styling.md)
 * [Playing with the data](playing_with_the_data.md)
-   * [Wiring up the UI](wiring_up_the_ui.md)
+* [Wiring up the UI](wiring_up_the_ui.md)
 
