@@ -1,6 +1,5 @@
 # Summary
 
-* [Introduction](README.md)
 * [Exploring the Instagram API](chapter1.md)
 * [Modeling the data](modeling_the_data.md)
    * [InstagramUser](instagramuser.md)
