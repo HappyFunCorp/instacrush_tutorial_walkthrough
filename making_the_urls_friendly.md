@@ -76,6 +76,15 @@ class InstagramUser < ActiveRecord::Base
 
 ```
   def show
-    @user = InstagramUser.findby_username( params[:username] )
+    @user = InstagramUser.find_by_username( params[:username] )
 ...
 ```
+
+## Mark progress
+
+```
+$ git add .
+$ git commit -a -m "Friendly urls"
+```
+
+(Github link: https://github.com/HappyFunCorp/instacrush_tutorial/commit/ad097e7451ea8514c87414d04b4282f7c8f0448e)
