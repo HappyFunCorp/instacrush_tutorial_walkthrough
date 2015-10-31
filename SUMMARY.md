@@ -1,5 +1,6 @@
 # Summary
 
+* [Introduction](README.md)
 * [Exploring the Instagram API](chapter1.md)
 * [Modeling the data](modeling_the_data.md)
    * [InstagramUser](instagramuser.md)
@@ -8,4 +9,5 @@
    * [Bootstrap Styling](bootstrap_styling.md)
 * [Playing with the data](playing_with_the_data.md)
 * [Wiring up the UI](wiring_up_the_ui.md)
+   * Making the URLs friendly
 
