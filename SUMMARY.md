@@ -10,4 +10,5 @@
 * [Playing with the data](playing_with_the_data.md)
 * [Wiring up the UI](wiring_up_the_ui.md)
    * [Making the URLs friendly](making_the_urls_friendly.md)
+   * Admin Tool
 
