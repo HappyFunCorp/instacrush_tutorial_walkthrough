@@ -375,3 +375,14 @@ ActiveAdmin.register InstagramMedia do
   end
 end
 ```
+
+## Basic work done
+
+There's a lot more we can add here, but we've gone through a couple of different ways of changing the fitlers, views, and linking the admin tool together.  We've also added a very basic dashboard, which is enough to see what's going on.
+
+```
+$ git add .
+$ git commit -a -m "ActiveAdmin model configuration"
+```
+
+(Github link: https://github.com/HappyFunCorp/instacrush_tutorial/commit/156d9a82e6d6f0ad20993e9f41d4f8b9ee6b658c)
