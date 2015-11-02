@@ -283,4 +283,22 @@ Better:
 
 ![](Will_Schenk___Instacrush_Tutorial 2.jpg)
 
-###
+## InstagramUser: Cleaning up the index page
+
+
+
+## InstagramUser: Adding an action to a resource
+```
+  member_action :load_info, method: :put do
+    if resource.user
+      InstagramUser.sync_from_user resource.user
+      redirect_to resource_path, notice: "Refreshed user"
+    else
+      redirect_to resource_path, notice: "No accesstoken associated with this user"
+    end
+  end
+
+  action_item "Load User Info", only: :show do
+    link_to "Load User Info", load_info_admin_instagram_user_path( resource ), method: :put 
+  end
+```
