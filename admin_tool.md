@@ -203,7 +203,9 @@ ActiveAdmin.register InstagramUser  do
   show do
     attributes_table do
       row :user
-      row :username
+      row :username do
+        link_to resource.username, "http://instagram.com/#{resource.username}"
+      end
       row :full_name
       row :profile_picture do
         image_tag resource.profile_picture
