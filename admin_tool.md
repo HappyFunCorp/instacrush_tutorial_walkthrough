@@ -227,3 +227,60 @@ ActiveAdmin.register InstagramUser  do
 end
 ```
 
+Hrm, sort of boring:
+
+![](Will_Schenk___Instacrush_Tutorial.jpg)
+
+Lets instead, show that informatio in the sidebar, and in the main area show a list of the interactions that have happened on my photos.  We'll change our `attributes_table` into a `sidebar`, and then loop through `instagram_interactions` in the main area:
+
+```
+ActiveAdmin.register InstagramUser  do
+  menu priority: 4
+
+  show do
+    panel "Interactions" do
+      table_for instagram_user.interactions do
+        column :who do |r|
+          link_to r.instagram_user.username, admin_instagram_user_path( r.instagram_user )
+        end
+        column :photo do |r|
+          image_tag r.instagram_media.thumbnail_url
+        end
+        column :is_like
+        column :comment
+      end
+    end
+    active_admin_comments
+  end
+
+  sidebar "Details", only: :show do
+    attributes_table do
+      row :user
+      row :username do
+        link_to resource.username, "http://instagram.com/#{resource.username}"
+      end
+      row :full_name
+      row :profile_picture do
+        image_tag resource.profile_picture
+      end
+      row :media_count
+      row :followed_count
+      row :following_count
+      row :updated_at
+      row :created_at
+    end
+  end
+
+  controller do
+    def find_resource
+      InstagramUser.where(username: params[:id]).first!
+    end
+  end
+end
+```
+
+Better:
+
+![](Will_Schenk___Instacrush_Tutorial 2.jpg)
+
+##
