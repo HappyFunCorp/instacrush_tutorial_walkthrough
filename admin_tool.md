@@ -283,11 +283,12 @@ Better:
 
 ![](Will_Schenk___Instacrush_Tutorial 2.jpg)
 
-## InstagramUser: Cleaning up the index page
-
 
 
 ## InstagramUser: Adding an action to a resource
+
+We can also add different member and collection actions.  Lets define a `member_action` that will sync the user:
+
 ```
   member_action :load_info, method: :put do
     if resource.user
@@ -297,8 +298,47 @@ Better:
       redirect_to resource_path, notice: "No accesstoken associated with this user"
     end
   end
+```
 
+And then on the show page, add a button on the top that links to the action:
+
+```
   action_item "Load User Info", only: :show do
     link_to "Load User Info", load_info_admin_instagram_user_path( resource ), method: :put 
+  end
+```
+
+Right now this will only sync the current user, but you can change that later to sync a different use than the one that's logged in.
+
+## InstagramUser: Cleaning up the index page
+
+Here we can define some filters, as well as a link to our custom action:
+
+```
+  filter :username
+  filter :full_name
+  filter :created_at
+  filter :media_count
+  filter :followed_count
+  filter :following_count
+  filter :last_synced
+
+  index do
+    selectable_column
+    column :id
+    column :username do |r|
+      link_to r.username, admin_instagram_user_path( r )
+    end
+    column :full_name
+    column "Profile" do |u|
+      image_tag u.profile_picture
+    end
+    column :media_count
+    column :followed_count
+    column :following_count
+    column :created_at
+    actions do |user|
+      link_to "Sync", load_info_admin_instagram_user_path( user ), method: :put 
+    end
   end
 ```
