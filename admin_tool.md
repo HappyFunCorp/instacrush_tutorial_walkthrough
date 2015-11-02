@@ -109,3 +109,119 @@ end
 
 Now when we reload the page we're able to see basic charts for the different tables we are generating data for.
 
+## Adding in some models
+
+Lets create a few models inside of `app/admin`
+
+`app/admin/crush.rb`:
+
+```
+ActiveAdmin.register Crush
+```
+
+`app/admin/instagram_user.rb`:
+
+```
+ActiveAdmin.register InstagramUser
+```
+
+`app/admin/instagram_media.rb`:
+
+```
+ActiveAdmin.register InstagramMedia
+```
+
+If we go back to the admin tool now, we see the different models in the header.
+
+![](Dashboard___Instacrush_Tutorial-2.jpg)
+
+It also adds a number of routes:
+
+![](Action_Controller__Exception_caught.jpg)
+
+Now that we have these routes, lets start customizing each of these pages.
+
+## Crush
+
+For the crush object, lets change a few things.
+- Move Crush in the menu bar to the left.
+- Change the filters on the right, to type in the username instead of the big drop down.
+- Show the usernames instead of the IDs, and link them to the admin tool
+- Have the slug link directly to the main profile.
+- Fix the view path, since we used the `friendly_id` gem to change the routes for `Crush` objects.
+
+Changing the filters is done using the `filter` DSL on Crush.  One of the nifty tricks here is that if we say `:instagram_user` it will use a drop down of all of the InstagramUsers in the system, but if we add `_username` it will filter on an attribute of the child element.  We'll do the same for `crush_user`.
+
+We're also redefining the `index` view for the crush admin too.  Notice that we are using the named routes to link to other parts of the admin tool.
+
+
+```
+ActiveAdmin.register Crush do
+  menu priority: 2
+
+  filter :instagram_user_username, as: :string
+  filter :crush_user_username, as: :string
+  filter :slug
+  filter :likes_count
+  filter :comments_count
+
+  index do
+    selectable_column
+    column :id
+    column :main_username do |c|
+      link_to c.instagram_user.username, admin_instagram_user_path( c.instagram_user )
+    end
+    column :crush_username do |c|
+      link_to c.crush_user.username, admin_instagram_user_path( c.crush_user )
+    end
+    column :likes_count
+    column :comments_count
+    column :slug do |c|
+      link_to c.slug, c
+    end
+    column :created_at
+    actions
+  end
+  
+  controller do
+    def find_resource
+      Crush.where(slug: params[:id]).first!
+    end
+  end
+end
+```
+
+Also verify that the `View` action works with the custom id field!
+
+## InstagramUser
+
+Next, lets click on your crush's instagram user name and fix that error, and show the users's photo:
+
+```
+
+ActiveAdmin.register InstagramUser  do
+  show do
+    attributes_table do
+      row :user
+      row :username
+      row :full_name
+      row :profile_picture do
+        image_tag resource.profile_picture
+      end
+      row :media_count
+      row :followed_count
+      row :following_count
+      row :updated_at
+      row :created_at
+    end
+    active_admin_comments
+  end
+
+  controller do
+    def find_resource
+      InstagramUser.where(username: params[:id]).first!
+    end
+  end
+end
+```
+
