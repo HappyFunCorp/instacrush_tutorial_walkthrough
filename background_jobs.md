@@ -35,4 +35,70 @@ And we've removed the `instagram_interactions` routes all together, so we can de
 $ git rm spec/requests/instagram_interactions_spec.rb
 ```
 
-## F
+Finally, for both `spec/requests/instagram_media_spec.rb` and `spec/requests/instagram_user_spec.rb` we are expecting a redirect to login, rather than a 200 response, so we can change the 200 to 302 like so:
+
+```
+expect(response).to have_http_status(302)
+```
+
+
+## Testing out the crush controller
+
+Lets first start by looking at what anonymous users see when they get the page.
+
+- index should require them to login
+- loading should require them to login
+- showing a crush should display the crush
+
+We are using the `let!` rspec method to force some objects to be instantiated, which in turn reference others defined with `let` and bring them back into place.
+
+```
+require 'rails_helper'
+
+RSpec.describe CrushController, :type => :controller do
+  let!( :instagram_auth ) { create( :identity, provider: :instagram, user: user, accesstoken: INSTAGRAM_ACCESS_TOKEN ) }
+  let!( :crush ) { create( :crush, instagram_user: instagram_user, crush_user: crush_user ) }
+
+  let( :user ) { create( :user ) }
+  let( :instagram_user ) { create( :instagram_user, user: user ) }
+  let( :crush_user ) { create( :instagram_user, user: user ) }
+
+  context "anonymous user" do
+    before( :each ) do
+      allow_message_expectations_on_nil
+      login_with nil
+    end
+
+    it "index should redirect to login with instagram" do
+      get :index
+      expect( response ).to redirect_to( user_omniauth_authorize_path( :instagram ) )
+    end
+
+    it "loading should redirect to login with instagram" do
+      get :loading
+      expect( response ).to redirect_to( user_omniauth_authorize_path( :instagram ) )
+    end
+
+    it "should display a public crush" do
+      get :show, slug: crush.slug
+      expect( response ).to have_http_status(200)
+    end
+  end
+ end
+```
+
+Running this we see that we are unfairly forcing anonymous users to login to see someone elses crush.  Lets change that in `crush_controller.rb` now:
+
+```
+class CrushController < ApplicationController
+  before_filter :require_instagram_user, except: [:show]
+  before_filter :require_fresh_user, except: [:show]
+```
+
+All tests should pass!
+
+## Uptodate Users
+
+Now lets tests for logged in users with recently updated information.
+
+
