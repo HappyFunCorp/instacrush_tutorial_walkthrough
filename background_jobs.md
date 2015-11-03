@@ -165,6 +165,10 @@ Lets start making these tests pass!
   end
 
   def self.sync_feed_from_user user
+    if user.instagram_user.nil?
+      InstagramUser.create( user: user, username: user.instagram.nickname, state: "queued" )
+    end
+
     UpdateUserFeedJob.perform_later( user.id )
   end
 ```
