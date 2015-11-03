@@ -315,7 +315,7 @@ Running this, the loading test fails since it simply returns 200.  Lets put in c
 
     it "loading should redirect to their crush if it's been loaded" do
       get :loading
-      expect( response ).to redirect_to( loading_crush_index_path )
+      expect( response ).to have_http_status( 200 )
 
       instagram_user.update_attribute( :last_synced, 1.hour.ago )
       instagram_user.update_attribute( :state, "synced" )
@@ -352,10 +352,21 @@ Lets now change our before filter:
   end
 ```
 
-And then in `crush_controller.rb`, lets flesh out that `loading` action:
+And then in `crush_controller.rb`, lets change the before filters:
+
+```
+  before_filter :require_instagram_user, except: [:show]
+  before_filter :require_fresh_user, except: [:show, :loading]
+```
+
+and flesh out that `loading` action:
 
 ```
   def loading
+    if current_user.instagram_user.stale?
+      current_user.instagram_user.sync_if_needed
+    end
+
     if current_user.instagram_user.state == "synced"
       redirect_to Crush.find_for_user( current_user )
     end      
