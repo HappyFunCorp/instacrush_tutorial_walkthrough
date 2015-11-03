@@ -12,4 +12,5 @@
    * [Making the URLs friendly](making_the_urls_friendly.md)
    * [Admin Tool](admin_tool.md)
 * [Background Jobs](background_jobs.md)
+   * Adding a Job Processor
 
