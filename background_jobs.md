@@ -384,4 +384,4 @@ $ git add .
 $ git commit -a -m "Added UpdateUserFeedJob"
 ```
 
-(Github link: https://github.com/HappyFunCorp/instacrush_tutorial/commit/cf15329b9f0041f81b37a89ec5eabc5d7ac7cf0c)
+(Github link: https://github.com/HappyFunCorp/instacrush_tutorial/commit/1f8c46e041c77dd4c7a23f2b0a47036f0d863278)
