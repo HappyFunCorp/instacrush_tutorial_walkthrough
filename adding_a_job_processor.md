@@ -171,6 +171,36 @@ Sure enough, in `instagram_user.rb` we need to change the `sync!` method to:
     UpdateUserFeedJob.perform_later( self.user.id )
   end
 ```
-`
-dsf
 
+Lets delete the previous jobs, and give this another go:
+
+```
+[29] instacrush_tutorial »  Delayed::Job.destroy_all
+[30] instacrush_tutorial » reload!; InstagramUser.sync_feed_from_user User.first
+```
+
+There's another way to run the jobs, we can do this by 
+
+```
+$ rake jobs:workoff               ```
+
+This keeps going until all of the jobs are off of the queue.  This looks like it's working now.
+
+Lets try it again.  Instead of running foreman, try to run `rails s` in one terminal, and then process the jobs on demand using `rake jobs:workoff` in another terminal to play with the logic.
+
+To clear out the database:
+
+```
+[18] instacrush_tutorial »  InstagramUser.destroy_all; InstagramMedia.destroy_all; InstagramInteraction.destroy_all; Crush.destroy_all
+```
+
+## This is _minimal_
+
+But lets push forward.
+
+```
+$ git add .
+$ git commit -a -m "Added DelayedJob"
+```
+
+(Github link: https://github.com/HappyFunCorp/instacrush_tutorial/commit/2e480e74ad03897b68f13651cd389c096f707742)
