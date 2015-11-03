@@ -76,5 +76,23 @@ Let's clear out the sync state in the console, and see what we see on the front 
 [2] instacrush_tutorial »   InstagramUser.first.update_attribute( :last_synced, 1.day.ago )
 ```
 
+![](Crush___Seed_Site_and_instagram_user_rb_—_instacrush_tutorial.jpg)
 
+That's not what we want!  Lets move over our previous design.
+
+```
+$ mv app/views/welcome/calculating.html.haml app/views/crush/loading.html.haml
+```
+
+And change it to refresh the page:
+
+```
+          window.location = '#{ loading_crush_index_path }';
+```
+
+Lets reset our user once again:
+
+```
+[10] instacrush_tutorial »  InstagramUser.first.update_attribute( :last_synced, 1.day.ago )
+```
 
