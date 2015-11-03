@@ -160,10 +160,7 @@ And add our attribute:
 ```
 class AddStateToInstagramUser < ActiveRecord::Migration
   def change
-    add_column :instagram_users, :user_info_state, :string
-    add_column :instagram_users, :info_last_synced, :datetime
-    add_column :instagram_users, :user_feed_state, :string
-    add_column :instagram_users, :feed_last_synced, :datetime
+    add_column :instagram_users, :state, :string
   end
 end
 ```
