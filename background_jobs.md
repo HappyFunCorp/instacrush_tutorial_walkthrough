@@ -250,6 +250,54 @@ class CrushController < ApplicationController
 
 All tests should pass!
 
+## New Users
+
+For a new user, lets make sure that the requests get queued no matter which url gets hit.
+
+```
+  context "new user" do
+    let!( :clean_instagram_auth ) { create( :identity, provider: :instagram, user: clean_user, accesstoken: INSTAGRAM_ACCESS_TOKEN ) }
+    let( :clean_user ) { create( :user ) }
+
+    before( :each ) do
+      expect( clean_user.instagram_user ).to be_nil
+      allow_message_expectations_on_nil
+      login_with clean_user
+    end
+
+    it "should queue up the syncing job when you get the index page" do
+      assert_enqueued_with( job: UpdateUserFeedJob ) do
+        get :index
+      end
+      expect( response ).to redirect_to( loading_crush_index_path )
+      assert_no_enqueued_jobs do
+        get :loading
+      end
+      expect( response ).to have_http_status( 200 )
+    end
+
+    it "should queue up the syncing job if you hit the loading page first" do
+      assert_enqueued_with( job: UpdateUserFeedJob ) do
+        get :loading
+      end
+      expect( response ).to have_http_status( 200 )      
+    end
+  end
+```
+
+This triggers a ` Validation failed: Uid has already been taken` when we try to generate multiple `Identities`.  Lets update the factory to use a sequence in `spec/factories/identities.rb`:
+
+```
+FactoryGirl.define do
+  sequence :uid do |n|
+    "person#{n}"
+  end
+end
+```
+
+And then change the line from `uid "MyString"` to simply `uid`.
+
+
 ## Up-to-date users
 
 Now lets tests for logged in users with recently updated information.
