@@ -130,7 +130,7 @@ Running this gives us an error for `sync_if_needed`.  Lets go into `spec/models/
       expect( iu.stale? ).to be_falsey
     end
   end
-  
+
   context "syncing" do
     before( :each ) do
       expect( instagram_auth ).to_not be_nil
@@ -412,10 +412,22 @@ OK, we should get some test failures now,
 Lets now change our before filters:
 
 ```
+  def require_instagram_user
+    if current_user.nil? || current_user.instagram.nil?
+      store_location_for( :user, request.path )
+      redirect_to user_omniauth_authorize_path( :instagram )
+      return false
+    elsif current_user.instagram_user.nil?
+      InstagramUser.sync_feed_from_user current_user
+      redirect_to loading_crush_index_path, notice: "We're talking with instagram right now"
+      return false
+    end
+  end
+
   def require_fresh_user
     iu = current_user.instagram_user
-    if iu.stale?
-      iu.sync_if_needed
+    if iu.nil? || iu.stale?
+      InstagramUser.sync_feed_from_user current_user
       redirect_to loading_crush_index_path, notice: "We're talking with instagram right now"
     end
   end
