@@ -297,6 +297,7 @@ end
 
 And then change the line from `uid "MyString"` to simply `uid`.
 
+No we should have two errors `No enqueued job found with {:job=>UpdateUserFeedJob}`.  Lets keep writing tests.
 
 ## Up-to-date users
 
