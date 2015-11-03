@@ -6,7 +6,29 @@ The strategy is to make sure all of our tests pass, then change the `require_fre
 
 After that, we can start adding other jobs to start syncing more data.
 
-## Disable unused tests
+## Installing ActiveJob
+
+ActiveJob is to running background jobs as ActiveRecord is to querying the database.  It provides a common interface that lets us swap out a different runtime as needed.  Lets first add active_job and setup some tests to make sure things get queued up directly.  Then we can experiment with the frontend to experience what the difference it.
+
+Now lets create a new job:
+
+```
+$ rails g job UpdateUserFeed
+      invoke  rspec
+      create    spec/jobs/update_user_feed_job_spec.rb
+      create  app/jobs/update_user_feed_job.rb
+```
+
+This creates a few files that we will be editing shortly. Finally, lets tell rspec about ActiveJob, by putting the following in the config block of `spec/rails_helper.rb`:
+
+```
+  config.include ActiveJob::TestHelper
+```
+
+Lets start specing this stuff out.
+
+
+## Writing Tests
 
 Lets run guard now:
 
@@ -40,6 +62,60 @@ Finally, for both `spec/requests/instagram_media_spec.rb` and `spec/requests/ins
 ```
 expect(response).to have_http_status(302)
 ```
+
+## Writing the job code
+
+`spec/jobs/update_user_feed_spec.rb`:
+
+```
+require 'rails_helper'
+
+RSpec.describe UpdateUserFeedJob, type: :job do
+  let( :user ) { create( :user ) }
+  let!( :instagram_auth ) { create( :identity, provider: :instagram, user: user, accesstoken: INSTAGRAM_ACCESS_TOKEN ) }
+  let!( :instagram_user ) { create( :instagram_user, username: 'wschenk', user: user ) }
+ 
+  it "should create a job when requesting a synched user" do
+    assert_enqueued_with( job: UpdateUserFeedJob ) do
+      instagram_user.sync_if_needed
+    end
+
+    expect( instagram_user.state ).to eq( 'queued' )
+  end
+end
+```
+
+Running this gives us an error for `sync_if_needed`.  Lets go into `spec/models/instagram_user_spec.rb` and write some logic for that:
+
+```
+  context "needing syncing" do
+    it "a new object should be stale" do
+      iu = create( :instagram_user )
+      expect( iu.stale? ).to be_truthy
+    end
+
+    it "an object synced more than 12 hours ago should be stale" do
+      iu = create( :instagram_user, last_synced: 13.hours.ago )
+      expect( iu.stale? ).to be_truthy
+    end
+
+    it "an object synced 1 hours ago should not be stale" do
+      iu = create( :instagram_user, last_synced: 1.hour.ago )
+      expect( iu.stale? ).to be_falsey
+    end
+  end
+```
+
+Lets start making these tests pass!
+
+`app/models/instagram_user.rb`:
+
+```
+  def stale?
+    self.last_synced.nil? || self.last_synced < 12.hours.ago
+  end
+
+  def 
 
 
 ## Testing out the crush controller
@@ -97,8 +173,89 @@ class CrushController < ApplicationController
 
 All tests should pass!
 
-## Uptodate Users
+## Up-to-date users
 
 Now lets tests for logged in users with recently updated information.
 
+The trickiest thing here to so setup all of the variables we need to calculate the crush.  We first need to make sure that there's an interaction in the database, since the system checks to see if anything has changed before redirecting them to the crush, so the data needs to be uptodate.
 
+Then we updated the `:last_synced` attribute to an hour ago, login, and make sure that we have the propery redirects.
+
+```
+  let!( :instagram_interaction ) { create( :instagram_interaction, instagram_user: crush_user, instagram_media: post ) }
+  let( :post ) { create( :instagram_medium, instagram_user: instagram_user )}
+
+  context "up-to-date user" do
+    before( :each ) do
+      instagram_user.update_attribute( :last_synced, 1.hour.ago )
+      user.reload
+      allow_message_expectations_on_nil
+      login_with user
+    end
+
+    it "index should redirect to their crush" do
+      get :index
+      crush.reload # slug should get updated
+      expect( response ).to redirect_to( crush_path( crush.slug ) )
+    end
+
+    it "loading should redirect to their crush" do
+      get :loading
+      crush.reload # slug should get updated
+      expect( response ).to redirect_to( crush_path( crush ) )
+    end
+
+    it "should display their crush" do
+      get :show, slug: crush.slug
+      expect( response ).to have_http_status( 200 )
+    end
+  end
+```
+
+Running this, the loading test fails since it simply returns 200.  Lets put in code for the stale users, and start adding the queueing system.  We'll circle back to that soon.
+
+## Full on stale users
+
+```
+  context "stale user" do
+    before( :each ) do
+      allow_message_expectations_on_nil
+      login_with user
+    end
+
+    it "index should redirect to their crush" do
+      get :index
+      expect( response ).to redirect_to( crush_loading_path )
+    end
+
+    it "loading should remain on loading if it's not loaded yet" do
+      get :loading
+      expect( response ).to redirect_to( crush_loading_path )
+    end
+
+    it "loading should redirect to their crush if it's been loaded" do
+      get :loading
+      expect( response ).to redirect_to( crush_loading_path )
+
+      instagram_user.update_attribute( :last_synced, 1.hour.ago )
+      user.reload
+      get :loading
+      crush.reload
+      expect( response ).to redirect_to( crush_path( crush ) )
+    end
+
+    it "should display their crush" do
+      get :show, slug: crush.slug
+      expect( response ).to have_http_status( 200 )
+    end
+  end      
+```
+
+OK, we should get some test failures now, 
+-  CrushController up-to-date user loading should redirect to their crush
+-  CrushController stale user index should redirect to their crush
+-  CrushController stale user loading should remain on loading if it's not loaded yet
+-  CrushController stale user loading should redirect to their crush if it's been loaded
+
+
+## Updating our tests to 
