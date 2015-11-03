@@ -361,3 +361,16 @@ And then in `crush_controller.rb`, lets flesh out that `loading` action:
     end      
   end
 ```
+
+## Marking our progress
+
+We've split out the main filtering into a job, gotten the tests organized.  Right now we don't have a job runner installed, and so rails defaults to running the job inline.  If you fire up your server again you will still see the delay the first time you hit the site.
+
+Lets lock down our progress here and we'll start to expiriment with different job runners next.
+
+```
+$ git add .
+$ git commit -a -m "Added UpdateUserFeedJob"
+```
+
+(Github link: https://github.com/HappyFunCorp/instacrush_tutorial/commit/cf15329b9f0041f81b37a89ec5eabc5d7ac7cf0c)
