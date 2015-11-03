@@ -439,26 +439,14 @@ Lets now change our before filters:
 
 
 
-And then in `crush_controller.rb`, lets change the before filters:
-
-```
-  before_filter :require_instagram_user, except: [:show]
-  before_filter :require_fresh_user, except: [:show, :loading]
-```
-
-and flesh out that `loading` action:
+And then in `crush_controller.rb`:
 
 ```
   def loading
     iu = current_user.instagram_user
-    if iu
-      if iu.stale?
-        iu.sync_if_needed
-      end
-      if iu.state == "synced"
+    if iu.state == "synced"
         redirect_to Crush.find_for_user( current_user )
-      end
-    end      
+    end
   end
 ```
 
