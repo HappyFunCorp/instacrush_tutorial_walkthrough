@@ -76,3 +76,4 @@ Let's clear out the sync state in the console, and see what we see on the front 
 [2] instacrush_tutorial »   InstagramUser.first.update_attribute( :last_synced, 1.day.ago )
 ```
 
+
