@@ -1,4 +1,3 @@
-# My Awesome Book
+# Building instacrush with Seed
 
-This file serves as your book's preface, a great place to describe your book's content and ideas.
-
+Check out the full [Table of contents](SUMMARY.md).
