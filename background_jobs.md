@@ -310,7 +310,7 @@ Running this, the loading test fails since it simply returns 200.  Lets put in c
 
     it "loading should remain on loading if it's not loaded yet" do
       get :loading
-      expect( response ).to redirect_to( loading_crush_index_path )
+      expect( response ).to have_http_status( 200 )
     end
 
     it "loading should redirect to their crush if it's been loaded" do
