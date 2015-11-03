@@ -153,8 +153,12 @@ Lets start making these tests pass!
     self.last_synced.nil? || self.last_synced < 12.hours.ago
   end
 
+  def sync_needed?
+    stale? && state != 'queued'
+  end
+
   def sync_if_needed
-    if stale? && state != "queued"
+    if sync_needed?
       update_attribute( :state, "queued" )
       UpdateUserFeedJob.perform_later( self.user.id )
     end
@@ -431,6 +435,8 @@ Lets now change our before filters:
     end
   end
 ```
+
+
 
 And then in `crush_controller.rb`, lets change the before filters:
 
