@@ -96,3 +96,13 @@ Lets reset our user once again:
 [10] instacrush_tutorial »  InstagramUser.first.update_attribute( :last_synced, 1.day.ago )
 ```
 
+Now we see our nice loader, and when the bar is up, the page refreshes to either the loading page, or the crush itself.
+
+## More testing
+
+Lets delete all the instagram data in the database and see what happens.
+
+```
+[18] instacrush_tutorial »  InstagramUser.destroy_all; InstagramMedia.destroy_all; InstagramInteraction.destroy_all; Crush.destroy_all
+```
+
