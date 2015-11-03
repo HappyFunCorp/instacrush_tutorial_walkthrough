@@ -77,12 +77,12 @@ RSpec.describe UpdateUserFeedJob, type: :job do
  
   it "should create a job when requesting a synched user" do
     assert_enqueued_with( job: UpdateUserFeedJob ) do
-      instagram_user.sync_if_needed
+      expect( instagram_user.sync_if_needed ).to be_truthy
     end
 
     expect( instagram_user.state ).to eq( 'queued' )
   end
-  
+
   it "should not double enqueue a job" do
     assert_enqueued_with( job: UpdateUserFeedJob ) do
       expect( instagram_user.sync_if_needed ).to be_truthy
@@ -99,9 +99,9 @@ RSpec.describe UpdateUserFeedJob, type: :job do
     expect( InstagramMedia.count ).to eq( 0 )
 
     VCR.use_cassette 'instagram/recent_feed_for_user' do
-      UpdateUserFeedJob.perform_now( instagram_user.id )
+      UpdateUserFeedJob.perform_now( user.id )
     end
-    
+
     instagram_user.reload
 
     expect( instagram_user.stale? ).to be_falsey
@@ -130,6 +130,18 @@ Running this gives us an error for `sync_if_needed`.  Lets go into `spec/models/
       expect( iu.stale? ).to be_falsey
     end
   end
+  
+  context "syncing" do
+    before( :each ) do
+      expect( instagram_auth ).to_not be_nil
+    end
+
+    it "should trigger a sync for a stale user" do
+      assert_enqueued_with( job: UpdateUserFeedJob ) do
+        InstagramUser.sync_feed_from_user user
+      end
+    end
+  end
 ```
 
 Lets start making these tests pass!
@@ -144,8 +156,15 @@ Lets start making these tests pass!
   def sync_if_needed
     if stale? && state != "queued"
       update_attribute( :state, "queued" )
-      UpdateUserFeedJob.perform_later( self.id )
+      UpdateUserFeedJob.perform_later( self.id, self.user.id )
     end
+  end
+
+  def self.sync_feed_from_user user
+    user_id = user.id
+    instagram_user_id = nil
+    instagram_user_id = user.instagram_user.id if user.instagram_user
+    UpdateUserFeedJob.perform_later( instagram_user_id, user_id )
   end
 ```
 
@@ -181,16 +200,20 @@ Lets setup the `app/jobs/update_user_feed_job.rb` worker:
 class UpdateUserFeedJob < ActiveJob::Base
   queue_as :default
 
-  def perform( instagram_user_id )
-    instagram_user = InstagramUser.find instagram_user_id
+  def perform( user_id )
+    user = User.find user_id
 
-    InstagramMedia.recent_feed_for_user( instagram_user.user )
+    InstagramMedia.recent_feed_for_user user
 
+    user.reload
+    
+    instagram_user = user.instagram_user
     instagram_user.state = "synced"
     instagram_user.last_synced = Time.now
     instagram_user.save
   end
 end
+
 ```
 
 At this point, all of our specs should be green.
