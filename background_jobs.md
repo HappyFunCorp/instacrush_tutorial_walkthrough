@@ -417,7 +417,7 @@ Lets now change our before filters:
       store_location_for( :user, request.path )
       redirect_to user_omniauth_authorize_path( :instagram )
       return false
-    elsif current_user.instagram_user.nil?
+    elsif current_user.should_sync?
       InstagramUser.sync_feed_from_user current_user
       redirect_to loading_crush_index_path, notice: "We're talking with instagram right now"
       return false
@@ -425,8 +425,7 @@ Lets now change our before filters:
   end
 
   def require_fresh_user
-    iu = current_user.instagram_user
-    if iu.nil? || iu.stale?
+    if current_user.should_sync?
       InstagramUser.sync_feed_from_user current_user
       redirect_to loading_crush_index_path, notice: "We're talking with instagram right now"
     end
