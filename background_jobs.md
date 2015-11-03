@@ -115,8 +115,37 @@ Lets start making these tests pass!
     self.last_synced.nil? || self.last_synced < 12.hours.ago
   end
 
-  def 
+  def sync_if_needed
+    if stale?
+      update_attribute( :state, "queued" )
+      UpdateUserFeedJob.perform_later( self.id )
+    end
+  end
+```
 
+This makes our `InstagramUser` tests green, but our  UpdateUserFeedJob tests fil with `undefined method 'state=' for #<InstagramUser>`!  Lets add that now:
+
+```
+$ rails g migration add_state_to_instagram_user
+```
+
+And add our attribute:
+
+```
+class AddStateToInstagramUser < ActiveRecord::Migration
+  def change
+    add_column :instagram_users, :state, :string
+  end
+end
+```
+
+Lets restart guard now, and run the migrations:
+
+```
+$ rake db:migrate && guard
+```
+
+Looks like things are working now!
 
 ## Testing out the crush controller
 
