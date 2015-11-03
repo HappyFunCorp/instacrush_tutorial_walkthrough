@@ -421,17 +421,18 @@ Lets now change our before filters:
       store_location_for( :user, request.path )
       redirect_to user_omniauth_authorize_path( :instagram )
       return false
-    elsif current_user.should_sync?
-      InstagramUser.sync_feed_from_user current_user
-      redirect_to loading_crush_index_path, notice: "We're talking with instagram right now"
-      return false
     end
   end
 
   def require_fresh_user
     if current_user.should_sync?
       InstagramUser.sync_feed_from_user current_user
-      redirect_to loading_crush_index_path, notice: "We're talking with instagram right now"
+
+      flash[:notice] = "We're talking with instagram right now"
+      if request.path != loading_crush_index_path
+        redirect_to loading_crush_index_path
+        return false
+      end
     end
   end
 ```
@@ -449,12 +450,14 @@ and flesh out that `loading` action:
 
 ```
   def loading
-    if current_user.instagram_user.stale?
-      current_user.instagram_user.sync_if_needed
-    end
-
-    if current_user.instagram_user.state == "synced"
-      redirect_to Crush.find_for_user( current_user )
+    iu = current_user.instagram_user
+    if iu
+      if iu.stale?
+        iu.sync_if_needed
+      end
+      if iu.state == "synced"
+        redirect_to Crush.find_for_user( current_user )
+      end
     end      
   end
 ```
