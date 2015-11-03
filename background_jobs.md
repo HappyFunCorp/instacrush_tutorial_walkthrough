@@ -82,6 +82,30 @@ RSpec.describe UpdateUserFeedJob, type: :job do
 
     expect( instagram_user.state ).to eq( 'queued' )
   end
+  
+  it "should not double enqueue a job" do
+    assert_enqueued_with( job: UpdateUserFeedJob ) do
+      expect( instagram_user.sync_if_needed ).to be_truthy
+    end
+
+    expect( instagram_user.state ).to eq( 'queued' )
+
+    assert_no_enqueued_jobs do
+      expect( instagram_user.sync_if_needed ).to be_falsey
+    end
+  end
+
+  it "should actually sync the users feed" do
+    expect( InstagramMedia.count ).to eq( 0 )
+
+    VCR.use_cassette 'instagram/recent_feed_for_user' do
+      UpdateUserFeedJob.perform_now( instagram_user.id )
+    end
+
+    expect( instagram_user.stale? ).to be_falsey
+    expect( instagram_user.state ).to eq( "synced" )
+    expect( InstagramMedia.count ).to_not eq(0)
+  end
 end
 ```
 
@@ -116,7 +140,7 @@ Lets start making these tests pass!
   end
 
   def sync_if_needed
-    if stale?
+    if stale? && state != "queued"
       update_attribute( :state, "queued" )
       UpdateUserFeedJob.perform_later( self.id )
     end
@@ -208,7 +232,7 @@ Now lets tests for logged in users with recently updated information.
 
 The trickiest thing here to so setup all of the variables we need to calculate the crush.  We first need to make sure that there's an interaction in the database, since the system checks to see if anything has changed before redirecting them to the crush, so the data needs to be uptodate.
 
-Then we updated the `:last_synced` attribute to an hour ago, login, and make sure that we have the propery redirects.
+Then we updated the `:last_synced` attribute to an hour ago, login, and make sure that we have the properly redirects.
 
 ```
   let!( :instagram_interaction ) { create( :instagram_interaction, instagram_user: crush_user, instagram_media: post ) }
@@ -217,6 +241,7 @@ Then we updated the `:last_synced` attribute to an hour ago, login, and make sur
   context "up-to-date user" do
     before( :each ) do
       instagram_user.update_attribute( :last_synced, 1.hour.ago )
+      instagram_user.update_attribute( :state, 'synced' )
       user.reload
       allow_message_expectations_on_nil
       login_with user
@@ -253,20 +278,23 @@ Running this, the loading test fails since it simply returns 200.  Lets put in c
     end
 
     it "index should redirect to their crush" do
-      get :index
-      expect( response ).to redirect_to( crush_loading_path )
+      assert_enqueued_with( job: UpdateUserFeedJob ) do
+        get :index
+      end
+      expect( response ).to redirect_to( loading_crush_index_path )
     end
 
     it "loading should remain on loading if it's not loaded yet" do
       get :loading
-      expect( response ).to redirect_to( crush_loading_path )
+      expect( response ).to redirect_to( loading_crush_index_path )
     end
 
     it "loading should redirect to their crush if it's been loaded" do
       get :loading
-      expect( response ).to redirect_to( crush_loading_path )
+      expect( response ).to redirect_to( loading_crush_index_path )
 
       instagram_user.update_attribute( :last_synced, 1.hour.ago )
+      instagram_user.update_attribute( :state, "synced" )
       user.reload
       get :loading
       crush.reload
@@ -286,5 +314,26 @@ OK, we should get some test failures now,
 -  CrushController stale user loading should remain on loading if it's not loaded yet
 -  CrushController stale user loading should redirect to their crush if it's been loaded
 
+## Lets make it green
 
-## Updating our tests to 
+Lets now change our before filter:
+
+```
+  def require_fresh_user
+    iu = current_user.instagram_user
+    if iu.stale?
+      iu.sync_if_needed
+      redirect_to loading_crush_index_path, notice: "We're talking with instagram right now"
+    end
+  end
+```
+
+And then in `crush_controller.rb`, lets flesh out that `loading` action:
+
+```
+  def loading
+    if current_user.instagram_user.state == "synced"
+      redirect_to Crush.find_for_user( current_user )
+    end      
+  end
+```
