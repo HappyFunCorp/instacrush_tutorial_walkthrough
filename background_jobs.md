@@ -160,7 +160,10 @@ And add our attribute:
 ```
 class AddStateToInstagramUser < ActiveRecord::Migration
   def change
-    add_column :instagram_users, :state, :string
+    add_column :instagram_users, :user_info_state, :string
+    add_column :instagram_users, :info_last_synced, :datetime
+    add_column :instagram_users, :user_feed_state, :string
+    add_column :instagram_users, :feed_last_synced, :datetime
   end
 end
 ```
@@ -389,7 +392,7 @@ OK, we should get some test failures now,
 
 ## Lets make it green
 
-Lets now change our before filter:
+Lets now change our before filters:
 
 ```
   def require_fresh_user
