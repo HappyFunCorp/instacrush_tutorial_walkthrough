@@ -156,15 +156,12 @@ Lets start making these tests pass!
   def sync_if_needed
     if stale? && state != "queued"
       update_attribute( :state, "queued" )
-      UpdateUserFeedJob.perform_later( self.id, self.user.id )
+      UpdateUserFeedJob.perform_later( self.user.id )
     end
   end
 
   def self.sync_feed_from_user user
-    user_id = user.id
-    instagram_user_id = nil
-    instagram_user_id = user.instagram_user.id if user.instagram_user
-    UpdateUserFeedJob.perform_later( instagram_user_id, user_id )
+    UpdateUserFeedJob.perform_later( user.id )
   end
 ```
 
