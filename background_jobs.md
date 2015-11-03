@@ -101,6 +101,8 @@ RSpec.describe UpdateUserFeedJob, type: :job do
     VCR.use_cassette 'instagram/recent_feed_for_user' do
       UpdateUserFeedJob.perform_now( instagram_user.id )
     end
+    
+    instagram_user.reload
 
     expect( instagram_user.stale? ).to be_falsey
     expect( instagram_user.state ).to eq( "synced" )
@@ -170,6 +172,28 @@ $ rake db:migrate && guard
 ```
 
 Looks like things are working now!
+
+## Implement the worker
+
+Lets setup the `app/jobs/update_user_feed_job.rb` worker:
+
+```
+class UpdateUserFeedJob < ActiveJob::Base
+  queue_as :default
+
+  def perform( instagram_user_id )
+    instagram_user = InstagramUser.find instagram_user_id
+
+    InstagramMedia.recent_feed_for_user( instagram_user.user )
+
+    instagram_user.state = "synced"
+    instagram_user.last_synced = Time.now
+    instagram_user.save
+  end
+end
+```
+
+At this point, all of our specs should be green.
 
 ## Testing out the crush controller
 
