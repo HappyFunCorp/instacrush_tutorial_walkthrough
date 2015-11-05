@@ -13,5 +13,5 @@
    * [Admin Tool](admin_tool.md)
 * [Background Jobs](background_jobs.md)
    * [Adding a Job Processor](adding_a_job_processor.md)
-* Deploying to Heroku
+* [Deploying to Heroku](deploying_to_heroku.md)
 
