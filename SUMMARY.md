@@ -14,5 +14,5 @@
 * [Background Jobs](background_jobs.md)
    * [Adding a Job Processor](adding_a_job_processor.md)
 * [Deploying to Heroku](deploying_to_heroku.md)
-   * Moving to Sidekiq
+   * [Moving to Sidekiq](moving_to_sidekiq.md)
 
