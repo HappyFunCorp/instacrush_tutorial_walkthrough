@@ -191,3 +191,4 @@ Add it to heroku using:
 $ heroku config:add GOOGLE_ANALYTICS_SITE_ID=UA-999999-99
 ```
 
+Now if you go to the site and inspect elements, you'll be able to see  the google analytics tracking code!
