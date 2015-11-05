@@ -192,3 +192,22 @@ $ heroku config:add GOOGLE_ANALYTICS_SITE_ID=UA-999999-99
 ```
 
 Now if you go to the site and inspect elements, you'll be able to see  the google analytics tracking code!
+
+## Changing the log level
+
+Inside of `config/environments/production.rb` we can raise the log level so the app is queiter.  Change it to `:info` or `:error`
+
+```
+  config.log_level = :info
+```
+
+Remember that you need to commit your changes and push to deploy to heroku:
+
+```
+$ git commit -a -m "Changed log level"
+$ git push heroku master
+```
+
+(Github links:
+- https://github.com/HappyFunCorp/instacrush_tutorial/commit/a11b00dad6a3f8c9ca0e4c24122deaa94d68614f
+- https://github.com/HappyFunCorp/instacrush_tutorial/commit/3b61b83ddbc7e0d19de091786d96c9da00640765)
