@@ -181,3 +181,13 @@ And then hit the site and try and connect with instagram.  Lets see what happens
 
 Once we turn that on, we can flip back to our web browser and see that the crush has been loaded!
 
+## Google Analytics
+
+Get a tracking ID at https://www.google.com/analytics/web/
+
+Add it to heroku using:
+
+```
+$ heroku config:add GOOGLE_ANALYTICS_SITE_ID=UA-999999-99
+```
+
