@@ -175,5 +175,9 @@ Open up a log in one window:
 $ heroku logs --tail
 ```
 
-And then hit the site and try and connect with instagram.  Lets see what happens.  After I connect, I see the job queued but I don't 
+And then hit the site and try and connect with instagram.  Lets see what happens.  After I connect, I see the job queued but I don't see anything running.  Lets go to the heroku dashboard, https://dashboard.heroku.com/ and add a worker process:
+
+![](happyfancyname_·_Resources___Heroku.jpg)
+
+Once we turn that on, we can flip back to our web browser and see that the crush has been loaded!
 
